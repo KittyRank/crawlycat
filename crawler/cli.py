@@ -868,7 +868,15 @@ def crawl(
             _crawl_loop(lambda url: fetch_page(client, url))
     else:
         pw = sync_playwright().start()
-        browser = pw.chromium.launch(headless=True)
+        try:
+            browser = pw.chromium.launch(headless=True)
+        except Exception as e:
+            pw.stop()
+            raise RuntimeError(
+                "JS rendering needs Chromium, which isn't installed yet. "
+                "Run this once:  playwright install chromium  "
+                "— or tick 'Fast (no JS)' to crawl without a browser."
+            ) from e
         context = browser.new_context(user_agent=user_agent)
         try:
             _crawl_loop(lambda url: fetch_page_browser(context, url, timeout))
